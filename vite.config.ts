@@ -13,7 +13,7 @@ export default defineConfig({
         grant: ['GM_xmlhttpRequest', 'GM_getValue', 'GM_setValue'],
         connect: ['ungh.cc'],
         license: "Zlib",
-        version: '1.1.0',
+        version: '1.1.1',
         author: 'Farhan Digital',
         description: 'Shows the creation date of GitHub repositories on the repository page metadata sidebar.',
         updateURL: 'https://update.greasyfork.org/scripts/573707/github-creation-date.meta.js',
