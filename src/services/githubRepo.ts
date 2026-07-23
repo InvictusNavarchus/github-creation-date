@@ -66,7 +66,7 @@ export async function getCreationDate(username: string, repo: string): Promise<s
         GM_xmlhttpRequest({
             method: 'GET',
             url: apiUrl,
-            onload: (response) => {
+            onload: (response: { status: number; statusText: string; responseText: string }) => {
                 if (response.status !== 200) {
                     console.error('GitHub API error:', response.statusText);
                     recordFailure(cacheKey);
@@ -89,7 +89,7 @@ export async function getCreationDate(username: string, repo: string): Promise<s
                     resolve('Unknown');
                 }
             },
-            onerror: (error) => {
+            onerror: (error: unknown) => {
                 console.error('Network error:', error);
                 recordFailure(cacheKey);
                 resolve('Unknown');
