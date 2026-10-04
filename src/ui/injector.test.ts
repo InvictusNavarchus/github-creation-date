@@ -7,6 +7,10 @@ const ISO = new Date(2020, 0, 5).toISOString();
 const FORMATTED = 'Jan 5, 2020';
 
 function render(html: string) {
+  document.body.innerHTML = `<div data-component="SplitPageLayout.Pane">${html}</div>`;
+}
+
+function renderRaw(html: string) {
   document.body.innerHTML = html;
 }
 
@@ -19,7 +23,7 @@ describe('injector', () => {
     vi.restoreAllMocks();
   });
 
-  it('returns false and injects nothing when there is no About heading', () => {
+  it('returns false and injects nothing when there is no About heading in sidebar', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
     render('<h2>Releases</h2><div>stuff</div>');
 
@@ -29,7 +33,32 @@ describe('injector', () => {
 
   it('returns false on an empty page', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
+    renderRaw('');
     expect(injectCreationDate(ISO)).toBe(false);
+  });
+
+  it('returns false when no sidebar is present even if an About heading exists in page content', () => {
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    renderRaw('<main><h2>About</h2><div id="readme-row"><a href="#readme-ov-file">Readme</a></div></main>');
+
+    expect(injectCreationDate(ISO)).toBe(false);
+    expect(isAlreadyInjected()).toBe(false);
+  });
+
+  it.each([
+    ['SplitPageLayout.Pane', '<div data-component="SplitPageLayout.Pane">'],
+    ['PageLayout.Pane', '<div data-component="PageLayout.Pane">'],
+    ['data-position="end"', '<div data-position="end">'],
+    ['CodeViewSidebar', '<div class="CodeViewSidebar-module__borderGrid__Lpx5q">'],
+    ['Layout-sidebar', '<div class="Layout-sidebar">'],
+    ['BorderGrid', '<div class="BorderGrid">'],
+    ['aside', '<aside>'],
+  ])('recognizes sidebar container via %s', (_name, openTag) => {
+    const closeTag = openTag.startsWith('<aside') ? '</aside>' : '</div>';
+    renderRaw(`${openTag}<div id="section"><h2>About</h2></div>${closeTag}`);
+
+    expect(injectCreationDate(ISO)).toBe(true);
+    expect(isAlreadyInjected()).toBe(true);
   });
 
   it('inserts after the Readme row (#readme-ov-file)', () => {
@@ -50,10 +79,12 @@ describe('injector', () => {
   });
 
   it('supports the legacy #readme anchor', () => {
-    render(`
-      <div class="BorderGrid-cell">
-        <h2>About</h2>
-        <div id="readme-row"><a href="#readme">Readme</a></div>
+    renderRaw(`
+      <div class="BorderGrid">
+        <div class="BorderGrid-cell">
+          <h2>About</h2>
+          <div id="readme-row"><a href="#readme">Readme</a></div>
+        </div>
       </div>`);
 
     expect(injectCreationDate(ISO)).toBe(true);

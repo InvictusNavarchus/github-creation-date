@@ -4,10 +4,27 @@ import { log } from '../utils/logger';
 const NS = `ghcd_${Math.random().toString(36).slice(2)}`;
 log(`NS: ${NS}`);
 
+const SIDEBAR_SELECTORS = [
+    '[data-component="SplitPageLayout.Pane"]',
+    '[data-component="PageLayout.Pane"]',
+    'div[data-position="end"]',
+    '[class*="CodeViewSidebar"]',
+    '.Layout-sidebar',
+    '.BorderGrid',
+    'aside',
+].join(', ');
+
+export function getSidebarElement(): Element | null {
+    return document.querySelector(SIDEBAR_SELECTORS);
+}
+
 function getTargetElement(): Element | undefined {
+    const sidebar = getSidebarElement();
+    if (!sidebar) return undefined;
+
     // Current GitHub (2025+): CSS-module sidebar uses h2[data-component="Heading"]
     // Legacy GitHub: uses .BorderGrid-cell h2
-    const headings = document.querySelectorAll<HTMLHeadingElement>(
+    const headings = sidebar.querySelectorAll<HTMLHeadingElement>(
         'h2[data-component="Heading"], .BorderGrid-cell h2, h2'
     );
 
