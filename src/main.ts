@@ -33,6 +33,10 @@ async function main() {
 
         const { username, repo } = repoInfo;
         const creationDate = await getCreationDate(username, repo);
+        if (creationDate === 'Unknown') {
+            log(`Creation date unavailable for ${username}/${repo}, skipping injection.`);
+            return;
+        }
         injectCreationDate(creationDate);
 
         log(`Repository ${username}/${repo} was created on: ${creationDate}`);
