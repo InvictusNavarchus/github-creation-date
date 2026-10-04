@@ -2,6 +2,7 @@ import { formatDate } from '../utils/date';
 import { log } from '../utils/logger';
 
 const NS = `ghcd_${Math.random().toString(36).slice(2)}`;
+log(`NS: ${NS}`);
 
 function getTargetElement(): Element | undefined {
     // Current GitHub (2025+): CSS-module sidebar uses h2[data-component="Heading"]
