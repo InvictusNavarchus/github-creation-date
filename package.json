@@ -11,10 +11,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "release": "release-it"
   },
   "devDependencies": {
     "happy-dom": "^20.14.5",
+    "release-it": "^21.1.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.2",
     "vite-plugin-monkey": "^8.1.1",
