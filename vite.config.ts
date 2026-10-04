@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import monkey from 'vite-plugin-monkey';
+import pkg from './package.json' with { type: 'json' }
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -13,7 +14,7 @@ export default defineConfig({
         grant: ['GM_xmlhttpRequest', 'GM_getValue', 'GM_setValue'],
         connect: ['ungh.cc'],
         license: "Zlib",
-        version: '1.1.1',
+        version: pkg.version,
         author: 'Farhan Digital',
         description: 'Shows the creation date of GitHub repositories on the repository page metadata sidebar.',
         updateURL: 'https://update.greasyfork.org/scripts/573707/github-creation-date.meta.js',
