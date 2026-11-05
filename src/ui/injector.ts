@@ -7,29 +7,42 @@ log(`NS: ${NS}`);
 const SIDEBAR_SELECTORS = [
     '[data-component="SplitPageLayout.Pane"]',
     '[data-component="PageLayout.Pane"]',
-    'div[data-position="end"]',
     '[class*="CodeViewSidebar"]',
     '.Layout-sidebar',
     '.BorderGrid',
     'aside',
-].join(', ');
+    'div[data-position="end"]',
+];
+
+function isAboutHeading(heading: Element): boolean {
+    return (
+        heading.textContent?.trim().toLowerCase() === 'about' &&
+        !heading.closest('header')
+    );
+}
 
 export function getSidebarElement(): Element | null {
-    return document.querySelector(SIDEBAR_SELECTORS);
+    // Try explicit sidebar components before broad fallbacks, regardless of DOM order.
+    for (const selector of SIDEBAR_SELECTORS) {
+        for (const candidate of document.querySelectorAll(selector)) {
+            if ([...candidate.querySelectorAll('h2')].some(isAboutHeading)) {
+                return candidate;
+            }
+        }
+    }
+
+    return null;
 }
 
 function getTargetElement(): Element | undefined {
     const sidebar = getSidebarElement();
     if (!sidebar) return undefined;
 
-    // Current GitHub (2025+): CSS-module sidebar uses h2[data-component="Heading"]
-    // Legacy GitHub: uses .BorderGrid-cell h2
-    const headings = sidebar.querySelectorAll<HTMLHeadingElement>(
-        'h2[data-component="Heading"], .BorderGrid-cell h2, h2'
-    );
+    const headings = sidebar.querySelectorAll('h2');
 
     for (const heading of headings) {
-        if (heading.textContent?.trim().toLowerCase() !== 'about') continue;
+        // GitHub also renders an About section inside its responsive header.
+        if (!isAboutHeading(heading)) continue;
 
         const section = heading.parentElement;
         if (!section) continue;

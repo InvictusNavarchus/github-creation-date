@@ -61,6 +61,85 @@ describe('injector', () => {
     expect(isAlreadyInjected()).toBe(true);
   });
 
+  it('prefers the explicit sidebar over an earlier fallback container', () => {
+    renderRaw(`
+      <aside>
+        <div><h2>About</h2>
+          <div id="fallback-readme"><a href="#readme-ov-file">Readme</a></div>
+        </div>
+      </aside>
+      <div data-component="SplitPageLayout.Pane">
+        <div><h2>About</h2>
+          <div id="desktop-readme"><a href="#readme-ov-file">Readme</a></div>
+        </div>
+      </div>`);
+
+    expect(injectCreationDate(ISO)).toBe(true);
+    expect(injectedAfter(document.getElementById('fallback-readme'))).toBeNull();
+    expect(injectedAfter(document.getElementById('desktop-readme'))?.textContent).toContain(FORMATTED);
+  });
+
+  it('skips sidebar candidates without an About section', () => {
+    renderRaw(`
+      <div data-component="SplitPageLayout.Pane"><h2>Files</h2></div>
+      <div data-component="SplitPageLayout.Pane">
+        <div><h2>About</h2>
+          <div id="desktop-readme"><a href="#readme-ov-file">Readme</a></div>
+        </div>
+      </div>`);
+
+    expect(injectCreationDate(ISO)).toBe(true);
+    expect(injectedAfter(document.getElementById('desktop-readme'))?.textContent).toContain(FORMATTED);
+  });
+
+  it.each([false, true])('ignores the responsive header About section (shared pane: %s)', (sharedPane) => {
+    const header = `
+      <header>
+        <div class="CodeViewHeader-module_NarrowOnly BorderGrid">
+          <div><h2>About</h2>
+            <div id="mobile-readme"><a href="#readme-ov-file">Readme</a></div>
+          </div>
+        </div>
+      </header>`;
+    const sidebar = `
+      <div class="CodeViewSidebar OverviewSidebar-module_HideWhenNarrow">
+        <div><h2>About</h2>
+          <div id="desktop-readme"><a href="#readme-ov-file">Readme</a></div>
+        </div>
+      </div>`;
+    renderRaw(sharedPane
+      ? `<div data-component="SplitPageLayout.Pane">${header}${sidebar}</div>`
+      : `${header}<div data-component="SplitPageLayout.Pane">${sidebar}</div>`);
+
+    expect(injectCreationDate(ISO)).toBe(true);
+    expect(injectedAfter(document.getElementById('mobile-readme'))).toBeNull();
+    expect(injectedAfter(document.getElementById('desktop-readme'))?.textContent).toContain(FORMATTED);
+  });
+
+  it('waits for the sidebar when only the responsive header has rendered', () => {
+    renderRaw(`
+      <header>
+        <div class="BorderGrid"><div><h2>About</h2>
+          <div id="mobile-readme"><a href="#readme-ov-file">Readme</a></div>
+        </div></div>
+      </header>`);
+
+    expect(injectCreationDate(ISO)).toBe(false);
+    expect(isAlreadyInjected()).toBe(false);
+
+    document.body.insertAdjacentHTML('beforeend', `
+      <div data-component="SplitPageLayout.Pane">
+        <div><h2>About</h2>
+          <div id="desktop-readme"><a href="#readme-ov-file">Readme</a></div>
+        </div>
+      </div>`);
+
+    expect(injectCreationDate(ISO)).toBe(true);
+    expect(injectedAfter(document.getElementById('mobile-readme'))).toBeNull();
+    expect(injectedAfter(document.getElementById('desktop-readme'))?.textContent).toContain(FORMATTED);
+    expect(document.querySelectorAll('[id^="ghcd_"]')).toHaveLength(1);
+  });
+
   it('inserts after the Readme row (#readme-ov-file)', () => {
     render(`
       <div id="section">
